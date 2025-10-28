@@ -5,14 +5,18 @@
 //  Created by florian on 22.10.25.
 //
 import Foundation
+import Combine
 
-class Weather_ForecastController{
+class WeatherForecastController : ObservableObject{
     var location : String
-    var forecast : WheatherForecast!
-    init(location: String) {
+    @Published var forecast : WheatherForecast!
+    
+    //Constructor, forecast can be loaded via reload
+    init(_ location: String) {
         self.location = location
     }
     
+    //loads via https a new WeatherForecast for the location
     func reload() {
         let urlString  : String = "\(WeatherAPIURL)forecast.json?key=\(WeatherAPIKey)&q=\(self.location)&days=\(NummberOfForecastDays)"
         
@@ -34,11 +38,18 @@ class Weather_ForecastController{
                     
                     //store data using the main thread
                     OperationQueue.main.addOperation {
+                        print("update location")
+                        
+                        //update location
                         self.forecast = newForecast
                     }
                 }
             }
             task.resume()
+            
+        //Error during url creation
+        } else {
+            fatalError("Error during url creation")
         }
         
 
