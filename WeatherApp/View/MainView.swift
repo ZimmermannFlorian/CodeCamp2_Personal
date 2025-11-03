@@ -6,13 +6,40 @@
 //
 
 import SwiftUI
+import Combine
 
 struct MainView : View {
     @ObservedObject var mvc : MV_Controller
+    @State var newLocation : String = ""
     
     var body: some View {
         VStack  {
-            ShowForecastView(data: mvc.curr_forcast_view_container)
+            ShowForecastView(data: mvc.weatherViewData.current_weather)
+            
+            List(mvc.weatherViewData.fav_locations, id: \.id) { f in
+                ShowForecrastPreviewView(data: f)
+            }.refreshable {
+                self.mvc.model.refresh()
+            }
+
+            HStack {
+                TextField("Add Location", text: $newLocation)
+                Button("+", action: {
+                    mvc.addLocation(newLocation)
+                })
+            }
+            Button("Toggle Mode", action: toggleSettings)
         }
     }
+    
+    func toggleSettings(){
+        mvc.settings.useFahrenheit = !mvc.settings.useFahrenheit
+        mvc.settings.useMiles = !mvc.settings.useMiles
+    }
+    
 }
+
+#Preview {
+
+}
+

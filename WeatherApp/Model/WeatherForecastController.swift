@@ -9,11 +9,12 @@ import Combine
 
 class WeatherForecastController : ObservableObject{
     var location : String
-    @Published var forecast : WheatherForecast!
+    @Published var forecast : WeatherForecast!
     
     //Constructor, forecast can be loaded via reload
-    init(_ location: String) {
+    init(_ location: String, _ data : WeatherForecast?) {
         self.location = location
+        self.forecast = data
     }
     
     //loads via https a new WeatherForecast for the location
@@ -22,16 +23,25 @@ class WeatherForecastController : ObservableObject{
         
         if let url = URL(string : urlString) {
             let task = URLSession.shared.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    // "Handle" the error
-                    fatalError("Error: \(error.localizedDescription)")
+                if let error = error as? URLError{
+                    
+                    //Error Handling
+                    switch error.code{
+                    case .timedOut:
+                        fallthrough
+                    case .notConnectedToInternet:
+                        print("No Internet connection");
+                    default:
+                        fatalError("Error: \(error.localizedDescription)")
+                    }
+                    
                 } else if let data = data {
                     
                     // Process the retrieved json
-                    var newForecast : WheatherForecast!
+                    var newForecast : WeatherForecast!
                     do {
                         let decoder = JSONDecoder()
-                        newForecast = try decoder.decode(WheatherForecast.self, from : data)
+                        newForecast = try decoder.decode(WeatherForecast.self, from : data)
                     } catch {
                         fatalError("Couldn't parse provided Json as Weather Forecast for \(self.location):\n\(error)")
                     }

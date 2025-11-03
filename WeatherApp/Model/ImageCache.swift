@@ -11,6 +11,7 @@ class ImageCache : ObservableObject{
     @Published var map: [String: Image] = [:]
     
     init() {
+        
     }
     
     func loadImage(_ url_string : String) {

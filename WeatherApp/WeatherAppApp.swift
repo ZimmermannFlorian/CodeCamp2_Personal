@@ -15,32 +15,28 @@ struct WeatherAppApp: App {
     }
     
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            return try ModelContainer(for: PersistentCache.self)
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
-        
     }()
     
     var view : MainView {
         return MainView(mvc: modelview_controller)
     }
     
-    @State var curr_location = WeatherForecastController("Medebach")
-    @State var image_cache = ImageCache()
+    var settings = MVC_Settings()
     var modelview_controller : MV_Controller {
-        return MV_Controller(currLocation: curr_location, imgCache: image_cache)
+        return MV_Controller(model : model, settings : settings)
+    }
+    
+    var model : WeatherModel {
+        return WeatherModel(sharedModelContainer.mainContext)
     }
     
     //build scene
     var body: some Scene {
-        modelview_controller.refresh_data()
         return WindowGroup {
             view
         }

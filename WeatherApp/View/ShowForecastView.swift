@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ShowForecastView : View {
     var data : ForecastViewContainer
@@ -17,8 +18,9 @@ struct ShowForecastView : View {
                 .padding()
             
             Text("Currently:")
+            data.icon
             HStack {
-                Text(data.tempureature)
+                Text(data.temperature)
                 Text(data.wind)
                 Text(data.windDir)
             }

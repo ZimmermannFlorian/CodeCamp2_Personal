@@ -97,6 +97,8 @@ struct WeatherCurrent : Hashable, Codable{
     var temp_c : Double
     var is_day : Int
     
+    var condition : WeatherCondition
+    
     var wind_kph : Double
     var wind_degree : Int
     var wind_dir : String
@@ -106,8 +108,19 @@ struct WeatherForecastHelper : Hashable, Codable {
     var forecastday : [WeatherDay]
 }
 
-struct WheatherForecast : Hashable, Codable {
+struct WeatherForecast : Hashable, Codable {
     var location : WeatherLocation
     var current : WeatherCurrent
     var forecast : WeatherForecastHelper
 }
+
+struct WeatherLocationSearch : Hashable, Codable {
+    var id : Int
+    var name : String
+    var region : String
+    var country : String
+    var lat : Double
+    var lon : Double
+    var url : String
+}
+

@@ -8,87 +8,124 @@ import SwiftUI
 import Foundation
 import Combine
 
-class MV_Controller : ObservableObject {
-    
-    private var curr_forcecast_listener : AnyCancellable!
-    private var image_cache_listener : AnyCancellable!
+class MV_Controller : ObservableObject{
+    var model: WeatherModel
+    @Published var weatherViewData : WeatherViewContainer
+    var settings : MVC_Settings
 
-    init(currLocation: WeatherForecastController, imgCache : ImageCache) {
-        self.currLocation = currLocation
-        self.image_cache = imgCache
-        self.curr_forcecast_listener = self.currLocation.$forecast
-            .sink { data in
-                if data != nil {
-                    self.curr_forcast_view_container = self.construct_forecastview_container(data.unsafelyUnwrapped)
-                }
-            }
+    private var update_timer : Timer!
+    private var update_gui_timer : Timer!
+    private var model_listener : Cancellable!
+
+    init(model : WeatherModel, settings : MVC_Settings) {
+        self.model = model
+        self.settings = settings
         
-        self.image_cache_listener = self.image_cache.$map
-            .sink { data in
-                //schedule refresh, so it runs AFTER the value actually changed
-                OperationQueue.main.addOperation {
-                    self.refresh_output()
-                }
-        }
+        //Set to null before loading
+        self.weatherViewData = NullWeatherViewContainer
+        
+        //update timer
+        self.update_timer = Timer.scheduledTimer(withTimeInterval: UpdateIntervalSeconds, repeats: true, block: { _ in
+            self.model.refresh()
+        })
+        self.update_timer.tolerance = 0.5
+        
+        self.update_gui_timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true, block: { _ in
+            self.refresh_output_delayed()
+        })
+        update_gui_timer.tolerance = 0.5
+        
+        self.model_listener = model.$update_toggle.sink(receiveValue:{ v in
+            self.refresh_output_delayed()
+        })
+        
+        //build basic structure
+        self.model.refresh()
+        self.refresh_output()
     }
     
-    @ObservedObject var image_cache : ImageCache
-    @ObservedObject var currLocation : WeatherForecastController
-    @Published var curr_forcast_view_container = NullForecastViewContainer
-
-    //update data
-    func refresh_data() {
-        currLocation.reload()
-    }
-    
+    //gui actions
     func refresh_output() {
         
-        if currLocation.forecast != nil {
-            curr_forcast_view_container = construct_forecastview_container(currLocation.forecast)
+        if model.currLocation.forecast != nil {
+            weatherViewData.current_weather = construct_forecastview_container(model.currLocation.forecast)
         }
         
+        weatherViewData.fav_locations.removeAll()
+        for p in model.fav_Locations {
+            if p.forecast != nil {
+                weatherViewData.fav_locations.append(construct_forecastview_container(p.forecast.unsafelyUnwrapped))
+            } else {
+                weatherViewData.fav_locations.append(NullForecastViewContainer)
+            }
+        }
+        
+    }
+    
+    func addLocation(_ name : String) {
+        model.addLocation(name)
+    }
+    
+    //update data
+    func refresh_output_delayed() {
+        OperationQueue.main.addOperation {
+            self.refresh_output()
+        }
     }
     
     //conversion functions
-    func construct_forecastview_container(_ input : WheatherForecast) -> ForecastViewContainer {
+    func construct_forecastview_container(_ input : WeatherForecast) -> ForecastViewContainer {
         return ForecastViewContainer (
             location: input.location.name,
-            tempureature: getTemperature(input.current.temp_c),
+            temperature: getTemperature(input.current.temp_c),
             wind: getWindSpeed(input.current.wind_kph),
             windDir: input.current.wind_dir,
+            icon : model.loadImage(input.current.condition.icon),
             days: construct_forecastdayview_container(input)
         )
     }
     
-    func construct_forecastdayview_container(_ input : WheatherForecast) -> [ForecastDayViewContainer] {
+    func construct_forecastdayview_container(_ input : WeatherForecast) -> [ForecastDayViewContainer] {
         var out : [ForecastDayViewContainer] = [];
         
+        var first = true
         for day in input.forecast.forecastday {
             
-            //"Load" Image
-            let forecastIcon = day.day.condition.icon
-            image_cache.loadImage(forecastIcon)
-            
-            out.append(
-                
-                //construct single day
-                ForecastDayViewContainer(
-                    icon: image_cache.map[forecastIcon]!,
-                    temperature: getTemperature(day.day.avgtemp_c),
-                    weekDay: getWeekday(day.date_epoch)
+            //skip todays forecast
+            if first {
+                first = false
+            } else {
+                out.append(
+                    
+                    //construct single day
+                    ForecastDayViewContainer(
+                        icon: model.loadImage(day.day.condition.icon),
+                        temperature: getTemperature(day.day.avgtemp_c),
+                        weekDay: getWeekday(day.date_epoch)
+                    )
+                    
                 )
-                
-            )
+            }
+            
         }
         return out
     }
     
     func getWindSpeed(_ wind_kph : Double) -> String {
-        let wind_speed = round(wind_kph * 10.0) / 10.0
-        return "\(wind_speed)km/h"
+        
+        if settings.useMiles {
+            return "\(round(wind_kph * 0.621371 * 10.0) / 10.0)mi/h"
+        }
+        
+        return "\(round(wind_kph * 10.0) / 10.0)km/h"
     }
     
     func getTemperature(_ temp : Double) -> String {
+        
+        if settings.useFahrenheit {
+            return "\(round(temp * (9.0 / 5.0) + 32.0))ºF"
+        }
+        
         return "\(round(temp * 10.0) / 10.0)ºC"
     }
     
@@ -104,4 +141,5 @@ class MV_Controller : ObservableObject {
         let date = Date(timeIntervalSince1970: TimeInterval(unixTime))
         return formatter.weekdaySymbols[Calendar.current.component(.weekday, from: date) - 1]
     }
+    
 }

@@ -14,6 +14,8 @@ struct ShowForecastDayView : View {
         VStack {
             HStack  {
                 data.icon
+            }
+            HStack {
                 Text(data.temperature)
             }
             Text(data.weekDay)
