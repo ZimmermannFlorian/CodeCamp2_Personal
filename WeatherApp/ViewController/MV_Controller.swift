@@ -62,9 +62,24 @@ class MV_Controller : ObservableObject{
         
     }
     
+    
     func addLocation(_ name : String) {
         model.addLocation(name)
     }
+    
+    func removeLocation(_ id : UUID) {
+        
+        var index = 0
+        for i in 0..<weatherViewData.fav_locations.count {
+            if(weatherViewData.fav_locations[i].id == id) {
+                index = i
+                break
+            }
+        }
+        
+        model.removeLocation(index)
+    }
+    
     
     //update data
     func refresh_output_delayed() {

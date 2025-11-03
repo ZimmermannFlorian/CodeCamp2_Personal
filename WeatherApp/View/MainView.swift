@@ -17,7 +17,16 @@ struct MainView : View {
             ShowForecastView(data: mvc.weatherViewData.current_weather)
             
             List(mvc.weatherViewData.fav_locations, id: \.id) { f in
+                
                 ShowForecrastPreviewView(data: f)
+                    .swipeActions(content: {
+                        Button(role: .destructive) {
+                            mvc.removeLocation(f.id)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    })
+
             }.refreshable {
                 self.mvc.model.refresh()
             }

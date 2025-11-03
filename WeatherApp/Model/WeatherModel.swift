@@ -163,8 +163,13 @@ class WeatherModel : ObservableObject{
         searchQuery(name)
     }
     
-    func removeLocation(_ id : UUID) {
+    func removeLocation(_ index : Int) {
         
+        fav_forecast_listener[index].cancel()
+        fav_forecast_listener.remove(at: index)
+        fav_Locations.remove(at: index)
+        
+        data_change_callback()
     }
     
     
