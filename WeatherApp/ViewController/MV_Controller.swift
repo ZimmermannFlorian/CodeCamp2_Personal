@@ -91,7 +91,7 @@ class MV_Controller : ObservableObject{
     //conversion functions
     func construct_forecastview_container(_ input : WeatherForecast) -> ForecastViewContainer {
         return ForecastViewContainer (
-            location: input.location.name,
+            location: getLocationName(input.location),
             temperature: getTemperature(input.current.temp_c),
             wind: getWindSpeed(input.current.wind_kph),
             windDir: input.current.wind_dir,
@@ -142,6 +142,15 @@ class MV_Controller : ObservableObject{
         }
         
         return "\(round(temp * 10.0) / 10.0)ºC"
+    }
+    
+    func getLocationName(_ loc : WeatherLocation) -> String{
+        
+        if loc.name == loc.region {
+            return loc.name
+        }
+        
+        return "\(loc.name)(\(loc.region))"
     }
     
     func getDate(_ unixTime : Int) -> String {

@@ -11,16 +11,29 @@ struct ShowForecrastPreviewView : View {
     var data : ForecastViewContainer
     
     var body: some View {
+        
         VStack {
+            VStack {
+                HStack {
+                    Text(data.location).font(Font.largeTitle).scaledToFill()
+                    data.icon
+                }
+                
+                HStack {
+                    Text(data.temperature)
+                    Text(data.wind)
+                }
+            }
+            
             HStack {
-                Text(data.location).font(Font.headline)
+                ForEach(Array(data.days.enumerated()), id: \.offset){ _, day in
+                    ShowForecastDayView(data: day)
+                        .padding()
+                }
             }
-            HStack{
-                data.icon
-                Text(data.temperature)
-                Text(data.wind)
-            }
-        }.border(Color.black)
+
+        }
+        
     }
 }
 

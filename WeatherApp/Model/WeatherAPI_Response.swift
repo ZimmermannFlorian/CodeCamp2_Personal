@@ -48,10 +48,6 @@ struct WeatherHour : Hashable, Codable {
     
     var uv : Double
     var gust_kph : Double
-    var short_rad : Double
-    var diff_rad : Double
-    var dni : Double
-    var gti : Double
 }
 
 struct WeatherAstro : Hashable, Codable {
