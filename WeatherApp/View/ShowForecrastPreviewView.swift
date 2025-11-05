@@ -15,7 +15,10 @@ struct ShowForecrastPreviewView : View {
         VStack {
             VStack {
                 HStack {
-                    Text(data.location).font(Font.largeTitle).scaledToFill()
+                    Text(data.location)
+                        .font(Font.largeTitle)
+                        .scaledToFit()
+                    Spacer(minLength: 0.7)
                     data.icon
                 }
                 

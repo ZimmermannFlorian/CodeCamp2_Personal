@@ -40,6 +40,7 @@ class WeatherForecastController : ObservableObject{
                     }
                     
                 } else if let data = data {
+                    var errorBool = false
                     
                     // Process the retrieved json
                     var newForecast : WeatherForecast!
@@ -47,15 +48,19 @@ class WeatherForecastController : ObservableObject{
                         let decoder = JSONDecoder()
                         newForecast = try decoder.decode(WeatherForecast.self, from : data)
                     } catch {
-                        fatalError("Couldn't parse provided Json as Weather Forecast for \(self.location):\n\(error)")
+                        //sometimes this happens :(
+                        print("Couldn't parse provided Json as Weather Forecast for \(self.location):\n\(error)")
+                        errorBool = true
                     }
                     
-                    //store data using the main thread
-                    OperationQueue.main.addOperation {
-                        print("update location")
-                        
-                        //update location
-                        self.forecast = newForecast
+                    //store data using the main thread if successfully
+                    if !errorBool && newForecast != nil {
+                        OperationQueue.main.addOperation {
+                            print("update location")
+                            
+                            //update location
+                            self.forecast = newForecast
+                        }
                     }
                 }
             }

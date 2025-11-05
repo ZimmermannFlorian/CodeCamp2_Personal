@@ -26,10 +26,17 @@ struct MainView : View {
             if showFooter {
                 VStack {
                     HStack {
-                        TextField("Add Location", text: $newLocation)
+                        Spacer(minLength: 0.05)
+                        
                         Button("+", action: {
                             mvc.addLocation(newLocation)
                         })
+                        
+                        TextField("Add Location", text: $newLocation)
+                            .frame(width: 0.8 * UIScreen.main.bounds.width)
+                            .fixedSize()
+
+                        Spacer(minLength: 0.05)
                     }
                     Button("Toggle Mode", action: toggleSettings)
                 }.transition(.slide)

@@ -160,9 +160,20 @@ class MV_Controller : ObservableObject{
         formatter.timeStyle = .none
         return formatter.string(from: date)
     }
+    
     func getWeekday(_ unixTime : Int) -> String {
-        let formatter = DateFormatter()
         let date = Date(timeIntervalSince1970: TimeInterval(unixTime))
+        let currDate = Date.now
+        
+        //Check that the data is alligning with today is fitting / show as past date
+        if Calendar.current.isDate(date, inSameDayAs: currDate) {
+            return "Today"
+        } else if unixTime < Int(date.timeIntervalSince1970) {
+            return getDate(unixTime)
+        }
+        
+        //print weekday for future dates
+        let formatter = DateFormatter()
         return formatter.weekdaySymbols[Calendar.current.component(.weekday, from: date) - 1]
     }
     
