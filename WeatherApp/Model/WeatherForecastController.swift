@@ -29,6 +29,10 @@ class WeatherForecastController : ObservableObject{
                     switch error.code{
                     case .timedOut:
                         fallthrough
+                    case .cannotFindHost:
+                        fallthrough
+                    case .cannotConnectToHost:
+                        fallthrough
                     case .notConnectedToInternet:
                         print("No Internet connection");
                     default:
