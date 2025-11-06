@@ -13,22 +13,30 @@ struct ShowForecastView : View {
     
     var body: some View {
         VStack  {
-            HStack {
+            //are we are running on outdated data?
+            if data.showCurrently {
+                HStack {
+                    Text(data.location)
+                        .font(.largeTitle)
+                        .scaledToFit()
+                    
+                    VStack {
+                        HStack{
+                            Text("Currently:")
+                            data.icon
+                        }
+                        HStack{
+                            Text(data.temperature)
+                            Text(data.wind)
+                            Text(data.windDir)
+                        }
+                    }
+                    
+                }
+            } else {
                 Text(data.location)
                     .font(.largeTitle)
-                
-                VStack {
-                    HStack{
-                        Text("Currently:")
-                        data.icon
-                    }
-                    HStack{
-                        Text(data.temperature)
-                        Text(data.wind)
-                        Text(data.windDir)
-                    }
-                }
-
+                    .scaledToFit()
             }
 
             HStack {

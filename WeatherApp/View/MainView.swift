@@ -61,9 +61,9 @@ struct MainView : View {
                     
                     //the show & not show point need to be seperated by a margin
                     //to not cause a flickering effect at the transition point
-                    if geometry.contentOffset.y > 200 {
+                    if geometry.contentOffset.y > 30 {
                         showHeader = false
-                    } else if geometry.contentOffset.y < 100 {
+                    } else if geometry.contentOffset.y < 25 {
                         showHeader = true
                     }
                     

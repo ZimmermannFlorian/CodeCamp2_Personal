@@ -27,6 +27,8 @@ struct ForecastViewContainer : Identifiable, Equatable{
         return lhs.id == rhs.id
     }
     
+    var showCurrently : Bool
+    
     var location : String
     var temperature : String
     
@@ -44,7 +46,7 @@ var NullForecastDayViewContainer : ForecastDayViewContainer {
     ForecastDayViewContainer(icon: Image(systemName: "cloud"), temperature: "0ºC", weekDay: "Mon")
 }
 var NullForecastViewContainer : ForecastViewContainer {
-    ForecastViewContainer(location: "Test", temperature: "0ºC", wind: "0 km/h", windDir: "NW", icon: Image(systemName: "cloud"), days: [NullForecastDayViewContainer, NullForecastDayViewContainer, NullForecastDayViewContainer])
+    ForecastViewContainer(showCurrently: true, location: "Test", temperature: "0ºC", wind: "0 km/h", windDir: "NW", icon: Image(systemName: "cloud"), days: [NullForecastDayViewContainer, NullForecastDayViewContainer, NullForecastDayViewContainer])
 }
 
 var NullWeatherViewContainer : WeatherViewContainer{

@@ -91,6 +91,7 @@ class MV_Controller : ObservableObject{
     //conversion functions
     func construct_forecastview_container(_ input : WeatherForecast) -> ForecastViewContainer {
         return ForecastViewContainer (
+            showCurrently: isToday(input.current.last_updated_epoch),
             location: getLocationName(input.location),
             temperature: getTemperature(input.current.temp_c),
             wind: getWindSpeed(input.current.wind_kph),
@@ -153,6 +154,13 @@ class MV_Controller : ObservableObject{
         return "\(loc.name)(\(loc.region))"
     }
     
+    func isToday(_ unixTime : Int) -> Bool {
+        let date = Date(timeIntervalSince1970: TimeInterval(unixTime))
+        let currDate = Date.now
+        
+        return Calendar.current.isDate(date, inSameDayAs: currDate)
+    }
+    
     func getDate(_ unixTime : Int) -> String {
         let formatter = DateFormatter()
         let date = Date(timeIntervalSince1970: TimeInterval(unixTime))
@@ -168,7 +176,7 @@ class MV_Controller : ObservableObject{
         //Check that the data is alligning with today is fitting / show as past date
         if Calendar.current.isDate(date, inSameDayAs: currDate) {
             return "Today"
-        } else if unixTime < Int(date.timeIntervalSince1970) {
+        } else if unixTime < Int(currDate.timeIntervalSince1970) {
             return getDate(unixTime)
         }
         
