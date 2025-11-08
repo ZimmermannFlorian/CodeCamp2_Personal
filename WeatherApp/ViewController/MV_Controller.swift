@@ -46,15 +46,17 @@ class MV_Controller : ObservableObject{
     
     //gui actions
     func refresh_output() {
-        
+        weatherViewData.fav_locations.removeAll()
+
         if model.currLocation.forecast != nil {
-            weatherViewData.current_weather = construct_forecastview_container(model.currLocation.forecast)
+            weatherViewData.fav_locations.append(construct_forecastview_container(
+                model.currLocation.forecast, isCurrentPosition: true))
         }
         
-        weatherViewData.fav_locations.removeAll()
         for p in model.fav_Locations {
             if p.forecast != nil {
-                weatherViewData.fav_locations.append(construct_forecastview_container(p.forecast.unsafelyUnwrapped))
+                weatherViewData.fav_locations.append(construct_forecastview_container(
+                    p.forecast.unsafelyUnwrapped, isCurrentPosition: false))
             } else {
                 weatherViewData.fav_locations.append(NullForecastViewContainer)
             }
@@ -89,9 +91,10 @@ class MV_Controller : ObservableObject{
     }
     
     //conversion functions
-    func construct_forecastview_container(_ input : WeatherForecast) -> ForecastViewContainer {
+    func construct_forecastview_container(_ input : WeatherForecast, isCurrentPosition : Bool) -> ForecastViewContainer {
         return ForecastViewContainer (
             showCurrently: isToday(input.current.last_updated_epoch),
+            isCurrentPosition : isCurrentPosition,
             location: getLocationName(input.location),
             temperature: getTemperature(input.current.temp_c),
             wind: getWindSpeed(input.current.wind_kph),
@@ -104,24 +107,18 @@ class MV_Controller : ObservableObject{
     func construct_forecastdayview_container(_ input : WeatherForecast) -> [ForecastDayViewContainer] {
         var out : [ForecastDayViewContainer] = [];
         
-        var first = true
         for day in input.forecast.forecastday {
             
-            //skip todays forecast
-            if first {
-                first = false
-            } else {
-                out.append(
-                    
-                    //construct single day
-                    ForecastDayViewContainer(
-                        icon: model.loadImage(day.day.condition.icon),
-                        temperature: getTemperature(day.day.avgtemp_c),
-                        weekDay: getWeekday(day.date_epoch)
-                    )
-                    
+            out.append(
+                
+                //construct single day
+                ForecastDayViewContainer(
+                    icon: model.loadImage(day.day.condition.icon),
+                    temperature: getTemperature(day.day.avgtemp_c),
+                    weekDay: getWeekday(day.date_epoch)
                 )
-            }
+                
+            )
             
         }
         return out

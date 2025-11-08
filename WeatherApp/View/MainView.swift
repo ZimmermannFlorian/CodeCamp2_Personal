@@ -11,69 +11,61 @@ import Combine
 struct MainView : View {
     @ObservedObject var mvc : MV_Controller
     @State var newLocation : String = ""
-    @State var showHeader = true
-    @State var showFooter = false
 
     var body: some View {
         VStack  {
             
-            //show current weather @ current location header
-            if showHeader {
-                ShowForecastView(data: mvc.weatherViewData.current_weather)
-                    .transition(.slide)
-            }
-            
-            if showFooter {
-                VStack {
-                    HStack {
-                        Spacer(minLength: 0.05)
-                        
-                        Button("+", action: {
-                            mvc.addLocation(newLocation)
-                        })
-                        
-                        TextField("Add Location", text: $newLocation)
-                            .frame(width: 0.8 * UIScreen.main.bounds.width)
-                            .fixedSize()
+            VStack {
+                HStack {
+                    Spacer(minLength: 0.05)
+                    
+                    Button("+", action: {
+                        mvc.addLocation(newLocation)
+                    })
+                    
+                    TextField("Add Location", text: $newLocation)
+                        .frame(width: 0.75 * UIScreen.main.bounds.width)
+                        .fixedSize()
 
-                        Spacer(minLength: 0.05)
+                    //Settings
+                    Button(action: toggleTemperature) {
+                        if  mvc.settings.useFahrenheit {
+                            Image(systemName: "degreesign.celsius")
+                        } else {
+                            Image(systemName: "degreesign.fahrenheit")
+                        }
                     }
-                    Button("Toggle Mode", action: toggleSettings)
-                }.transition(.slide)
-            }
+                    
+                    Button(action: toggleSpeed) {
+                        if  mvc.settings.useMiles {
+                            Text("km/h")
+                        } else {
+                            Text("mi/h")
+                        }
+                    }
+                    
+                    Spacer(minLength: 0.05)
+                }
+            }.transition(.slide)
             
             //Show Favorites list
             List(mvc.weatherViewData.fav_locations, id: \.id) { f in
-                ShowForecrastPreviewView(data: f)
-                    .swipeActions(content: {
-                        Button(role: .destructive) {
-                            mvc.removeLocation(f.id)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        
-                    })
-            }
-            .onScrollGeometryChange(for: Bool.self) { geometry in
-
-                //Delay so we do not modify state during view update
-                OperationQueue.main.addOperation {
-                    
-                    //the show & not show point need to be seperated by a margin
-                    //to not cause a flickering effect at the transition point
-                    if geometry.contentOffset.y > 30 {
-                        showHeader = false
-                    } else if geometry.contentOffset.y < 25 {
-                        showHeader = true
-                    }
-                    
-                    //footer for last x pixels
-                    showFooter = !showHeader
-                    
+                
+                if f.isCurrentPosition {
+                    //just create
+                    ShowForecrastView(data: f)
+                } else {
+                    //create with destroy fav option
+                    ShowForecrastView(data: f)
+                        .swipeActions(content: {
+                            Button(role: .destructive) {
+                                mvc.removeLocation(f.id)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            
+                        })
                 }
-
-                return true as Bool
-            } action: { oldValue, newValue in
                 
             }
             .refreshable {
@@ -83,8 +75,11 @@ struct MainView : View {
         }
     }
     
-    func toggleSettings(){
+    func toggleTemperature(){
         mvc.settings.useFahrenheit = !mvc.settings.useFahrenheit
+    }
+    
+    func toggleSpeed() {
         mvc.settings.useMiles = !mvc.settings.useMiles
     }
  

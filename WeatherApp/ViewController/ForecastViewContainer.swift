@@ -9,8 +9,6 @@ import Combine
 
 struct WeatherViewContainer: Identifiable {
     var id = UUID()
-
-    var current_weather: ForecastViewContainer
     var fav_locations: [ForecastViewContainer]
 }
 
@@ -28,6 +26,7 @@ struct ForecastViewContainer : Identifiable, Equatable{
     }
     
     var showCurrently : Bool
+    var isCurrentPosition : Bool
     
     var location : String
     var temperature : String
@@ -46,12 +45,14 @@ var NullForecastDayViewContainer : ForecastDayViewContainer {
     ForecastDayViewContainer(icon: Image(systemName: "cloud"), temperature: "0ºC", weekDay: "Mon")
 }
 var NullForecastViewContainer : ForecastViewContainer {
-    ForecastViewContainer(showCurrently: true, location: "Test", temperature: "0ºC", wind: "0 km/h", windDir: "NW", icon: Image(systemName: "cloud"), days: [NullForecastDayViewContainer, NullForecastDayViewContainer, NullForecastDayViewContainer])
+    ForecastViewContainer(showCurrently: true, isCurrentPosition: false,
+                          location: "Test", temperature: "0ºC", wind: "0 km/h",
+                          windDir: "NW", icon: Image(systemName: "cloud"),
+                          days: [NullForecastDayViewContainer, NullForecastDayViewContainer, NullForecastDayViewContainer])
 }
 
 var NullWeatherViewContainer : WeatherViewContainer{
     WeatherViewContainer(
-        current_weather : NullForecastViewContainer,
         fav_locations: [NullForecastViewContainer]
     )
 }

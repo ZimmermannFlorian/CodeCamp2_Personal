@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ShowForecrastPreviewView : View {
+struct ShowForecrastView : View {
     var data : ForecastViewContainer
     
     var body: some View {
@@ -21,14 +21,21 @@ struct ShowForecrastPreviewView : View {
                         Text(data.location)
                             .font(Font.largeTitle)
                             .scaledToFit()
-                        Spacer(minLength: 0.7)
                         
+                        if data.isCurrentPosition {
+                            Image(systemName: "location.app")
+                                .imageScale(.large)
+                        }
+                        
+                        Spacer(minLength: 0.7)
+
                         data.icon
                     }
                     
                     HStack {
                         Text(data.temperature)
                         Text(data.wind)
+                        Text(data.windDir)
                     }
                 }
             } else {
@@ -50,6 +57,6 @@ struct ShowForecrastPreviewView : View {
 }
 
 #Preview {
-    ShowForecrastPreviewView(data : NullForecastViewContainer)
-    ShowForecrastPreviewView(data : NullForecastViewContainer)
+    ShowForecrastView(data : NullForecastViewContainer)
+    ShowForecrastView(data : NullForecastViewContainer)
 }

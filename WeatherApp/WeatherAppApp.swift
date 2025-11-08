@@ -15,11 +15,13 @@ struct WeatherAppApp: App {
     }
     
     var sharedModelContainer: ModelContainer = {
+        
         do {
             return try ModelContainer(for: PersistentCache.self)
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
+        
     }()
     
     var view : MainView {
@@ -40,6 +42,5 @@ struct WeatherAppApp: App {
         return WindowGroup {
             view
         }
-        .modelContainer(sharedModelContainer)
     }
 }

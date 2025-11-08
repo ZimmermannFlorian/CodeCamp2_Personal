@@ -53,8 +53,10 @@ class WeatherModel : ObservableObject{
         }
         
         // load cache (pick first or create default)
+        var last_location = "Kassel"
         if let existing = dataRead.last {
             self.persistant_cache = existing
+            last_location = persistant_cache.last_location!.location.name
         } else {
             
             // Create default state
@@ -69,10 +71,9 @@ class WeatherModel : ObservableObject{
         }
         
         self.image_cache = ImageCache()
-        let lastLoc = persistant_cache.last_location!.location.name
-        self.currLocation = WeatherForecastController(lastLoc, persistant_cache.last_location)
+        self.currLocation = WeatherForecastController(last_location, persistant_cache.last_location)
         self.location_manager = LocationManager()
-        self.location_manager.locationStr = lastLoc
+        self.location_manager.locationStr = last_location
         
         //Create Location Handlers
         self.fav_Locations = []
@@ -192,7 +193,7 @@ class WeatherModel : ObservableObject{
     }
     
     
-    
+    //gets called by a timer for lazy saving
     func save_callback() {
         
         if self.lazy_update_persistant_data {

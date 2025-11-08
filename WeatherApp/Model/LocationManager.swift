@@ -21,7 +21,7 @@ class LocationManager : NSObject, CLLocationManagerDelegate, ObservableObject{
         locationManager.requestWhenInUseAuthorization()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.distanceFilter = 100
+        locationManager.distanceFilter = DistanceSQForPosUpdate
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
@@ -29,7 +29,8 @@ class LocationManager : NSObject, CLLocationManagerDelegate, ObservableObject{
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        locationStr = "\(locations.first!.coordinate.latitude), \(locations.first!.coordinate.longitude)";
+        let currLocation = locations.first!
+        locationStr = "\(currLocation.coordinate.latitude), \(currLocation.coordinate.longitude)";
         print("Location Update Received \(locationStr)")
     }
     
