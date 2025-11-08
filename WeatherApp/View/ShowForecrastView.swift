@@ -11,48 +11,47 @@ struct ShowForecrastView : View {
     var data : ForecastViewContainer
     
     var body: some View {
-        
         VStack {
-            
-            //are we are running on outdated data?
-            if data.showCurrently {
-                VStack {
-                    HStack {
-                        Text(data.location)
-                            .font(Font.largeTitle)
-                            .scaledToFit()
-                        
-                        if data.isCurrentPosition {
-                            Image(systemName: "location.app")
-                                .imageScale(.large)
-                        }
-                        
-                        Spacer(minLength: 0.7)
-
-                        data.icon
-                    }
-                    
-                    HStack {
-                        Text(data.temperature)
-                        Text(data.wind)
-                        Text(data.windDir)
-                    }
-                }
-            } else {
-                Text(data.location)
-                    .font(Font.largeTitle)
-                    .scaledToFit()
+            if data.isCurrentPosition {
+                Text("Current Location:");
             }
             
-            
-            HStack {
-                ForEach(Array(data.days.enumerated()), id: \.offset){ _, day in
-                    ShowForecastDayView(data: day)
+            VStack {
+                
+                //are we are running on outdated data?
+                if data.showCurrently {
+                    VStack {
+                        
+                        HStack {
+                            Text(data.location)
+                                .font(Font.largeTitle)
+                            
+                            Spacer(minLength: 0.7)
+                            
+                            data.icon
+                        }
+                        
+                        HStack {
+                            Text(data.temperature)
+                            Text(data.wind)
+                            Text(data.windDir)
+                        }
+                    }
+                } else {
+                    Text(data.location)
+                        .font(Font.largeTitle)
                 }
-            }.position(x: 100, y:50)
-
+                
+                
+                HStack {
+                    ForEach(Array(data.days.enumerated()), id: \.offset){ _, day in
+                        ShowForecastDayView(data: day)
+                    }
+                }.position(x: 100, y:50)
+                
+            }
+            
         }
-        
     }
 }
 
