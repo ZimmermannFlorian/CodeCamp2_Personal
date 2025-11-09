@@ -70,16 +70,20 @@ class MV_Controller : ObservableObject{
     }
     
     func removeLocation(_ id : UUID) {
-        
+        var found = false
         var index = 0
         for i in 0..<weatherViewData.fav_locations.count {
             if(weatherViewData.fav_locations[i].id == id) {
                 index = i
+                found = true
                 break
             }
         }
         
-        model.removeLocation(index)
+        if found {
+            //everything is offset by 1
+            model.removeLocation(index - 1)
+        }
     }
     
     
@@ -97,6 +101,7 @@ class MV_Controller : ObservableObject{
             isCurrentPosition : isCurrentPosition,
             location: getLocationName(input.location),
             temperature: getTemperature(input.current.temp_c),
+            humidity: getHumidity(input.current.humidity),
             wind: getWindSpeed(input.current.wind_kph),
             windDir: input.current.wind_dir,
             icon : model.loadImage(input.current.condition.icon),
@@ -142,10 +147,21 @@ class MV_Controller : ObservableObject{
         return "\(round(temp * 10.0) / 10.0)ºC"
     }
     
+    func getHumidity(_ humidity : Int) -> String {
+        return "\(humidity)%";
+    }
+    
     func getLocationName(_ loc : WeatherLocation) -> String{
         
         if loc.name == loc.region {
             return loc.name
+        }
+        
+        //not every place has a region
+        if loc.region == "" && loc.country != "" {
+            return "\(loc.name)(\(loc.country))"
+        } else if loc.region == "" {
+            return "\(loc.name)"
         }
         
         return "\(loc.name)(\(loc.region))"

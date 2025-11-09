@@ -33,6 +33,7 @@ struct ShowForecrastView : View {
                         
                         HStack {
                             Text(data.temperature)
+                            Text(data.humidity)
                             Text(data.wind)
                             Text(data.windDir)
                         }

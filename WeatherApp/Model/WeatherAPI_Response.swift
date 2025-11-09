@@ -98,6 +98,7 @@ struct WeatherCurrent : Hashable, Codable{
     var wind_kph : Double
     var wind_degree : Int
     var wind_dir : String
+    var humidity : Int
 }
 
 struct WeatherForecastHelper : Hashable, Codable {
