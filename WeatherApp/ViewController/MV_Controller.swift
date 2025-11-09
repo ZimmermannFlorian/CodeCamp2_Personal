@@ -10,16 +10,16 @@ import Combine
 
 class MV_Controller : ObservableObject{
     var model: WeatherModel
-    @Published var weatherViewData : WeatherViewContainer
     var settings : MVC_Settings
+    @Published var weatherViewData : WeatherViewContainer
 
     private var update_timer : Timer!
     private var update_gui_timer : Timer!
     private var model_listener : Cancellable!
-
-    init(model : WeatherModel, settings : MVC_Settings) {
+    
+    init(model : WeatherModel) {
         self.model = model
-        self.settings = settings
+        self.settings = MVC_Settings()
         
         //Set to null before loading
         self.weatherViewData = NullWeatherViewContainer
@@ -35,7 +35,7 @@ class MV_Controller : ObservableObject{
         })
         update_gui_timer.tolerance = 0.5
         
-        self.model_listener = model.$update_toggle.sink(receiveValue:{ v in
+        self.model_listener = model.$update_toggle.sink(receiveValue:{ _ in
             self.refresh_output_delayed()
         })
         
@@ -46,19 +46,19 @@ class MV_Controller : ObservableObject{
     
     //gui actions
     func refresh_output() {
-        weatherViewData.fav_locations.removeAll()
+        weatherViewData.locations_array.removeAll()
 
         if model.currLocation.forecast != nil {
-            weatherViewData.fav_locations.append(construct_forecastview_container(
+            weatherViewData.locations_array.append(construct_forecastview_container(
                 model.currLocation.forecast, isCurrentPosition: true))
         }
         
         for p in model.fav_Locations {
             if p.forecast != nil {
-                weatherViewData.fav_locations.append(construct_forecastview_container(
+                weatherViewData.locations_array.append(construct_forecastview_container(
                     p.forecast.unsafelyUnwrapped, isCurrentPosition: false))
             } else {
-                weatherViewData.fav_locations.append(NullForecastViewContainer)
+                weatherViewData.locations_array.append(NullForecastViewContainer)
             }
         }
         
@@ -72,8 +72,8 @@ class MV_Controller : ObservableObject{
     func removeLocation(_ id : UUID) {
         var found = false
         var index = 0
-        for i in 0..<weatherViewData.fav_locations.count {
-            if(weatherViewData.fav_locations[i].id == id) {
+        for i in 1..<weatherViewData.locations_array.count {
+            if(weatherViewData.locations_array[i].id == id) {
                 index = i
                 found = true
                 break
@@ -81,7 +81,7 @@ class MV_Controller : ObservableObject{
         }
         
         if found {
-            //everything is offset by 1
+            //everything is offset by 1 (currentlocation is 0)
             model.removeLocation(index - 1)
         }
     }
@@ -96,6 +96,8 @@ class MV_Controller : ObservableObject{
     
     //conversion functions
     func construct_forecastview_container(_ input : WeatherForecast, isCurrentPosition : Bool) -> ForecastViewContainer {
+        
+        //process raw data for presenting
         return ForecastViewContainer (
             showCurrently: isToday(input.current.last_updated_epoch),
             isCurrentPosition : isCurrentPosition,
@@ -159,12 +161,12 @@ class MV_Controller : ObservableObject{
         
         //not every place has a region
         if loc.region == "" && loc.country != "" {
-            return "\(loc.name)(\(loc.country))"
+            return "\(loc.name) (\(loc.country))"
         } else if loc.region == "" {
             return "\(loc.name)"
         }
         
-        return "\(loc.name)(\(loc.region))"
+        return "\(loc.name) (\(loc.region))"
     }
     
     func isToday(_ unixTime : Int) -> Bool {

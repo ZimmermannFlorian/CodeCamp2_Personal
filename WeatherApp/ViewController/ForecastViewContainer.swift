@@ -9,7 +9,7 @@ import Combine
 
 struct WeatherViewContainer: Identifiable {
     var id = UUID()
-    var fav_locations: [ForecastViewContainer]
+    var locations_array : [ForecastViewContainer]
 }
 
 struct ForecastDayViewContainer : Identifiable{
@@ -54,7 +54,7 @@ var NullForecastViewContainer : ForecastViewContainer {
 
 var NullWeatherViewContainer : WeatherViewContainer{
     WeatherViewContainer(
-        fav_locations: [NullForecastViewContainer]
+        locations_array: [NullForecastViewContainer]
     )
 }
 

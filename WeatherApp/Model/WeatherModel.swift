@@ -13,6 +13,10 @@ import SwiftData
 class WeatherModel : ObservableObject{
     var modelContext : ModelContext
     
+    //listener
+    @Published var update_toggle : Bool = false
+    @Published var lazy_update_persistant_data : Bool = false
+    
     // Persistent Cache
     var persistant_cache: PersistentCache
     
@@ -28,13 +32,14 @@ class WeatherModel : ObservableObject{
     var location_change_listener : AnyCancellable!
     var fav_forecast_listener : [AnyCancellable]
     
-    @Published var update_toggle : Bool = false
-    @Published var lazy_update_persistant_data : Bool = false
-    
     var lazy_data_save : Timer?
+    var searchRequester : NetworkRequest
     
     init(_ modelcontext : ModelContext) {
         self.modelContext = modelcontext
+        
+        //search requester
+        self.searchRequester = NetworkRequest()
         
         // fetch persistent data (all entries) sorted by last_update_epoch ascending, limited to 10
         var descriptor = FetchDescriptor<PersistentCache>(
@@ -63,9 +68,10 @@ class WeatherModel : ObservableObject{
             self.persistant_cache = PersistentCache(
                 fav_locations: [
                     "Kassel",
-                    "Frankfurt(Oder)"
+                    "Frankfurt(Oder)",
+                    "Uelzen"
                 ],
-                locations: [nil, nil],
+                locations: [nil, nil, nil],
                 last_location: nil
             )
         }
@@ -87,20 +93,12 @@ class WeatherModel : ObservableObject{
         //Build listeners
         self.fav_forecast_listener = []
         self.fav_Locations.forEach { f in
-            let l = f.$forecast.sink { data in
-                if data != nil {
-                    self.data_change_callback()
-                }
-            }
+            let l = f.$forecast.sink(receiveValue: data_sink_callback)
             self.fav_forecast_listener.append(l)
         }
         
         self.curr_forecast_listener = self.currLocation.$forecast
-            .sink { data in
-                if data != nil {
-                    self.data_change_callback()
-                }
-            }
+            .sink(receiveValue: data_sink_callback)
         
         self.image_cache_listener = self.image_cache.$map
             .sink { data in
@@ -115,10 +113,13 @@ class WeatherModel : ObservableObject{
         }
         self.location_manager.startListener()
         
-        //update timer
+        //update timer, we delay it by some ms to not save at every data change
         self.lazy_data_save = Timer.scheduledTimer(withTimeInterval: 0.125, repeats: true, block: {_ in
             self.save_callback()
         })
+        
+        //setup search callback
+        self.searchRequester.callback = searchQueryCallback
         
     }
     
@@ -141,6 +142,12 @@ class WeatherModel : ObservableObject{
         } else {
             // Provide a sensible fallback image to avoid crashing if the image isn't cached yet
             return Image(systemName: "photo")
+        }
+    }
+    
+    func data_sink_callback(data : WeatherForecast?) {
+        if data != nil {
+            self.data_change_callback()
         }
     }
     
@@ -180,11 +187,7 @@ class WeatherModel : ObservableObject{
         fav_Locations.append(forecastC)
         
         //add listener
-        let l = forecastC.$forecast.sink { data in
-            if data != nil {
-                self.data_change_callback()
-            }
-        }
+        let l = forecastC.$forecast.sink(receiveValue: data_sink_callback)
         fav_forecast_listener.append(l)
         forecastC.reload()
         
@@ -227,49 +230,30 @@ class WeatherModel : ObservableObject{
     
     func searchQuery(_ query : String) {
         let urlString  : String = "\(WeatherAPIURL)search.json?key=\(WeatherAPIKey)&q=\(query)"
+        searchRequester.request(urlString)
+    }
+    
+    func searchQueryCallback(data : Data, url : String) {
         
-        if let url = URL(string : urlString) {
-            let task = URLSession.shared.dataTask(with: url) { data, response, error in
-                if let error = error as? URLError{
-                    
-                    //Error Handling
-                    switch error.code{
-                    case .timedOut:
-                        fallthrough
-                    case .notConnectedToInternet:
-                        print("No Internet connection");
-                    default:
-                        fatalError("Error: \(error.localizedDescription)")
-                    }
-                    
-                } else if let data = data {
-                    
-                    // Process the retrieved json
-                    var searchResults = [WeatherLocationSearch]()
-                    do {
-                        let decoder = JSONDecoder()
-                        searchResults = try decoder.decode([WeatherLocationSearch].self, from : data)
-                    } catch {
-                        fatalError("Couldn't parse provided Json as Weather Forecast for \(query):\n\(error)")
-                    }
-                    
-                    //store data using the main thread
-                    OperationQueue.main.addOperation {
-                        print("search query")
-                        
-                        if let first = searchResults.first {
-                            self.addLocation_callback(first.url)
-                        }
-                    }
-                }
-            }
-            task.resume()
-            
-        //Error during url creation
-        } else {
-            fatalError("Error during url creation")
+        // Process the retrieved json
+        var searchResults = [WeatherLocationSearch]()
+        do {
+            let decoder = JSONDecoder()
+            searchResults = try decoder.decode([WeatherLocationSearch].self, from : data)
+        } catch {
+            print("Couldn't parse provided Json as Weather Forecast for \(url):\n\(error)")
+            return;
         }
-                
+        
+        //store data using the main thread
+        OperationQueue.main.addOperation {
+            print("search query")
+            
+            if let first = searchResults.first {
+                self.addLocation_callback(first.url)
+            }
+        }
+        
     }
     
 }

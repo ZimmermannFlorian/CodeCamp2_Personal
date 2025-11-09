@@ -9,8 +9,13 @@ import Combine
 
 class ImageCache : ObservableObject{
     @Published var map: [String: Image] = [:]
+    var requester : NetworkRequest
     
     init() {
+     
+        //Construct network callback
+        self.requester = NetworkRequest();
+        self.requester.callback = self.dataCallback
         
     }
     
@@ -24,30 +29,21 @@ class ImageCache : ObservableObject{
         //Load Placeholder
         map[url_string] = Image(systemName: "transmission")
         
-        //New Load
-        if let url = URL(string : "https:\(url_string)") {
-            let task = URLSession.shared.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    // "Handle" the error
-                    fatalError("Error: \(error.localizedDescription)")
-                } else if let data = data {
-                    
-                    // Process the retrieved json
-                    let newImage = UIImage(data : data)
-                    
-                    //store data using the main thread
-                    OperationQueue.main.addOperation {
-                        print("loading image")
-                        
-                        self.map[url_string] = Image(uiImage: newImage!)
-                    }
-                }
-            }
-            task.resume()
-            
-        //Error during url creation
-        } else {
-            fatalError("Error during url creation")
+        //start requesting the new image
+        requester.request("https:\(url_string)")
+    }
+    
+    //gets called on different threads then MAIN!
+    func dataCallback(data : Data, url : String) {
+        
+        // Process the retrieved Image
+        let newImage = UIImage(data : data)
+        
+        //store data using the main thread
+        OperationQueue.main.addOperation {
+            print("loading image")
+            let strID = String(url.dropFirst(6))
+            self.map[strID] = Image(uiImage: newImage!)
         }
     }
     

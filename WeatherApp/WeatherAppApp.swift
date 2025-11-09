@@ -14,6 +14,7 @@ struct WeatherAppApp: App {
         
     }
     
+    //Create Initial Model container for persistant cache
     var sharedModelContainer: ModelContainer = {
         
         do {
@@ -24,17 +25,15 @@ struct WeatherAppApp: App {
         
     }()
     
-    var view : MainView {
-        return MainView(mvc: modelview_controller)
-    }
-    
-    var settings = MVC_Settings()
-    var modelview_controller : MV_Controller {
-        return MV_Controller(model : model, settings : settings)
-    }
-    
+    //Create MVC
     var model : WeatherModel {
         return WeatherModel(sharedModelContainer.mainContext)
+    }
+    var modelview_controller : MV_Controller {
+        return MV_Controller(model : model)
+    }
+    var view : MainView {
+        return MainView(mvc: modelview_controller)
     }
     
     //build scene

@@ -18,7 +18,7 @@ struct ShowForecrastView : View {
             
             VStack {
                 
-                //are we are running on outdated data?
+                //are we are running on valid data?
                 if data.showCurrently {
                     VStack {
                         
@@ -38,6 +38,8 @@ struct ShowForecrastView : View {
                             Text(data.windDir)
                         }
                     }
+                    
+                //outdated data, just how the location name
                 } else {
                     Text(data.location)
                         .font(Font.largeTitle)
