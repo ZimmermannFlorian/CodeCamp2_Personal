@@ -69,9 +69,10 @@ class WeatherModel : ObservableObject{
                 fav_locations: [
                     "Kassel",
                     "Frankfurt(Oder)",
-                    "Uelzen"
+                    "Uelzen",
+                    "Duisburg"
                 ],
-                locations: [nil, nil, nil],
+                locations: [nil, nil, nil, nil],
                 last_location: nil
             )
         }
@@ -114,9 +115,8 @@ class WeatherModel : ObservableObject{
         self.location_manager.startListener()
         
         //update timer, we delay it by some ms to not save at every data change
-        self.lazy_data_save = Timer.scheduledTimer(withTimeInterval: 0.125, repeats: true, block: {_ in
-            self.save_callback()
-        })
+        self.lazy_data_save = Timer.scheduledTimer(withTimeInterval: 0.125,
+                                                   repeats: true, block: self.save_callback)
         
         //setup search callback
         self.searchRequester.callback = searchQueryCallback
@@ -137,12 +137,10 @@ class WeatherModel : ObservableObject{
         let forecastIcon = url
         image_cache.loadImage(forecastIcon)
         
-        if let image = image_cache.map[forecastIcon] {
-            return image
-        } else {
-            // Provide a sensible fallback image to avoid crashing if the image isn't cached yet
-            return Image(systemName: "photo")
-        }
+        //default is loaded by image cache while loading,
+        //so this is always valid
+        let image = image_cache.map[forecastIcon]
+        return image!
     }
     
     func data_sink_callback(data : WeatherForecast?) {
@@ -166,6 +164,7 @@ class WeatherModel : ObservableObject{
             print("Failed to save cache")
         }
     }
+    
     
     func addLocation(_ name : String) {
         searchQuery(name)
@@ -197,7 +196,7 @@ class WeatherModel : ObservableObject{
     
     
     //gets called by a timer for lazy saving
-    func save_callback() {
+    func save_callback(_ time : Timer) {
         
         if self.lazy_update_persistant_data {
             self.lazy_update_persistant_data = false

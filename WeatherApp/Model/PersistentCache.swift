@@ -15,7 +15,7 @@ class PersistentCache {
     
     var fav_locations : [String]
     var locations : [WeatherForecast?]
-    
+        
     init(fav_locations: [String], locations: [WeatherForecast?], last_location: WeatherForecast?) {
         self.fav_locations = fav_locations
         self.locations = locations

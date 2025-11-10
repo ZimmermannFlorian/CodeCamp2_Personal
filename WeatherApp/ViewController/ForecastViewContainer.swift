@@ -57,4 +57,3 @@ var NullWeatherViewContainer : WeatherViewContainer{
         locations_array: [NullForecastViewContainer]
     )
 }
-

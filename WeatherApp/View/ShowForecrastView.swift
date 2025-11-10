@@ -37,6 +37,7 @@ struct ShowForecrastView : View {
                             Text(data.wind)
                             Text(data.windDir)
                         }
+                        
                     }
                     
                 //outdated data, just how the location name
