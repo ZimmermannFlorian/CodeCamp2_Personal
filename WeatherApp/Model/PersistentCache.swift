@@ -9,7 +9,7 @@ import SwiftData
 import Foundation
 
 @Model
-class PersistentCache {
+class PersistentCacheData {
     var last_update_epoch : Double
     var last_location : WeatherForecast?
     

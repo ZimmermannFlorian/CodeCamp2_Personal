@@ -30,9 +30,9 @@ class NetworkRequest {
                     case .cannotConnectToHost:
                         fallthrough
                     case .notConnectedToInternet:
-                        print("No Internet connection");
+                        debugPrint("No Internet connection");
                     default:
-                        print("Error: \(error.localizedDescription)")
+                        debugPrint("Error: \(error.localizedDescription)")
                     }
                     
                 } else if let data = data {
@@ -43,7 +43,7 @@ class NetworkRequest {
             
         //Error during url creation
         } else {
-            print("Error during url creation")
+            debugPrint("Error during url creation")
         }
         
     }

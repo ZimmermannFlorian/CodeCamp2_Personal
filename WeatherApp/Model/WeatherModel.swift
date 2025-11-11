@@ -18,7 +18,7 @@ class WeatherModel : ObservableObject{
     @Published var lazy_update_persistant_data : Bool = false
     
     // Persistent Cache
-    var persistant_cache: PersistentCache
+    var persistant_cache: PersistentCacheData
     
     //Data Fetcher
     var currLocation : WeatherForecastController
@@ -42,14 +42,14 @@ class WeatherModel : ObservableObject{
         self.searchRequester = NetworkRequest()
         
         // fetch persistent data (all entries) sorted by last_update_epoch ascending, limited to 10
-        var descriptor = FetchDescriptor<PersistentCache>(
+        var descriptor = FetchDescriptor<PersistentCacheData>(
             predicate: nil,
             sortBy: [
                 SortDescriptor(\.last_update_epoch, order: .forward)
             ]
         )
         descriptor.fetchLimit = 10
-        let dataRead: [PersistentCache]
+        let dataRead: [PersistentCacheData]
         do {
             dataRead = try modelContext.fetch(descriptor)
         } catch {
@@ -65,7 +65,7 @@ class WeatherModel : ObservableObject{
         } else {
             
             // Create default state
-            self.persistant_cache = PersistentCache(
+            self.persistant_cache = PersistentCacheData(
                 fav_locations: [
                     "Kassel",
                     "Frankfurt(Oder)",
@@ -161,7 +161,7 @@ class WeatherModel : ObservableObject{
         do {
             try modelContext.save()
         } catch {
-            print("Failed to save cache")
+            debugPrint("Failed to save cache")
         }
     }
     
@@ -202,7 +202,7 @@ class WeatherModel : ObservableObject{
             self.lazy_update_persistant_data = false
             
             //Create data backup
-            let newData = PersistentCache(
+            let newData = PersistentCacheData(
                 fav_locations: [],
                 locations: [],
                 last_location: nil
@@ -211,16 +211,15 @@ class WeatherModel : ObservableObject{
             for f in self.fav_Locations {
                 newData.fav_locations.append(f.location)
                 newData.locations.append(f.forecast)
-                
             }
             
             //remove old & add new & invoce save data
             do {
-                try self.modelContext.delete(model: PersistentCache.self)
+                try self.modelContext.delete(model: PersistentCacheData.self)
                 self.modelContext.insert(newData)
                 try self.modelContext.save()
             } catch {
-                print("Failed to save persistent cache: \(error)")
+                debugPrint("Failed to save persistent cache: \(error)")
             }
         }
         
@@ -240,13 +239,13 @@ class WeatherModel : ObservableObject{
             let decoder = JSONDecoder()
             searchResults = try decoder.decode([WeatherLocationSearch].self, from : data)
         } catch {
-            print("Couldn't parse provided Json as Weather Forecast for \(url):\n\(error)")
+            debugPrint("Couldn't parse provided Json as Weather Location search for \(url):\n\(error)")
             return;
         }
         
         //store data using the main thread
         OperationQueue.main.addOperation {
-            print("search query")
+            debugPrint("search query")
             
             if let first = searchResults.first {
                 self.addLocation_callback(first.url)

@@ -32,7 +32,7 @@ class ImageCache : ObservableObject{
             return
         }
         
-        //Load Placeholder from cache if possible, we are reloading because we need
+        //Load Placeholder
         map[url_string] = Image(systemName: "transmission")
         
         //start requesting the new image
@@ -47,7 +47,8 @@ class ImageCache : ObservableObject{
         
         //store data using the main thread
         OperationQueue.main.addOperation {
-            print("loading image")
+            debugPrint("loading image")
+            
             let strID = String(url.dropFirst(6))
 
             //show new image

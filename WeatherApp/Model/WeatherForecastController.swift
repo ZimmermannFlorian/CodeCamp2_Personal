@@ -38,14 +38,14 @@ class WeatherForecastController : ObservableObject{
             newForecast = try decoder.decode(WeatherForecast.self, from : data)
         } catch {
             //sometimes this happens :(
-            print("Couldn't parse provided Json as Weather Forecast for \(self.location):\n\(error)")
+            debugPrint("Couldn't parse provided Json as Weather Forecast for \(self.location):\n\(error)")
             return
         }
         
         //store data using the main thread if successfully
         if newForecast != nil {
             OperationQueue.main.addOperation {
-                print("update location")
+                debugPrint("update location")
                 
                 //update location
                 self.forecast = newForecast

@@ -11,3 +11,11 @@ let WeatherAPIKey : String = "6cee499eddbe427a92e130846252210"
 let DistanceSQForPosUpdate : Double = 100.0
 let NummberOfForecastDays : Int = 3
 let UpdateIntervalSeconds : Double = 90.0
+
+let DebugPrints : Bool = false
+
+func debugPrint(_ str : String) {
+    if DebugPrints {
+        print(str)
+    }
+}

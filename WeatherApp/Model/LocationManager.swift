@@ -25,17 +25,17 @@ class LocationManager : NSObject, CLLocationManagerDelegate, ObservableObject{
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
-        print("Failed to find user's location: \(error.localizedDescription)")
+        debugPrint("Failed to find user's location: \(error.localizedDescription)")
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let currLocation = locations.first!
         locationStr = "\(currLocation.coordinate.latitude), \(currLocation.coordinate.longitude)";
-        print("Location Update Received \(locationStr)")
+        debugPrint("Location Update Received \(locationStr)")
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        print("New Authorization Status: \(status.rawValue)")
+        debugPrint("New Authorization Status: \(status.rawValue)")
     }
     
     func startListener() {
