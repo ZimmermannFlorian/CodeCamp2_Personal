@@ -11,15 +11,10 @@ import Combine
 import SwiftData
 
 class WeatherModel : ObservableObject{
-    var modelContext : ModelContext
     
     //listener
     @Published var update_toggle : Bool = false
-    @Published var lazy_update_persistant_data : Bool = false
-    
-    // Persistent Cache
-    var persistant_cache: PersistentCacheData
-    
+
     //Data Fetcher
     var currLocation : WeatherForecastController
     var fav_Locations : [WeatherForecastController]
@@ -32,40 +27,23 @@ class WeatherModel : ObservableObject{
     var location_change_listener : AnyCancellable!
     var fav_forecast_listener : [AnyCancellable]
     
-    var lazy_data_save : Timer?
     var searchRequester : NetworkRequest
+    var cache : PersistentCache
     
-    init(_ modelcontext : ModelContext) {
-        self.modelContext = modelcontext
+    init() {
         
         //search requester
         self.searchRequester = NetworkRequest()
+        self.cache = PersistentCache()
         
-        // fetch persistent data (all entries) sorted by last_update_epoch ascending, limited to 10
-        var descriptor = FetchDescriptor<PersistentCacheData>(
-            predicate: nil,
-            sortBy: [
-                SortDescriptor(\.last_update_epoch, order: .forward)
-            ]
-        )
-        descriptor.fetchLimit = 10
-        let dataRead: [PersistentCacheData]
-        do {
-            dataRead = try modelContext.fetch(descriptor)
-        } catch {
-            // If fetching fails, fall back to empty results
-            dataRead = []
-        }
-        
-        // load cache (pick first or create default)
+        // load cache (or create default)
         var last_location = "Kassel"
-        if let existing = dataRead.last {
-            self.persistant_cache = existing
-            last_location = persistant_cache.last_location!.location.name
+        if let existing = cache.data {
+            last_location = existing.last_location!.location.name
         } else {
             
             // Create default state
-            self.persistant_cache = PersistentCacheData(
+            cache.data = PersistentCacheData(
                 fav_locations: [
                     "Kassel",
                     "Frankfurt(Oder)",
@@ -78,16 +56,16 @@ class WeatherModel : ObservableObject{
         }
         
         self.image_cache = ImageCache()
-        self.currLocation = WeatherForecastController(last_location, persistant_cache.last_location)
+        self.currLocation = WeatherForecastController(last_location, cache.data!.last_location)
         self.location_manager = LocationManager()
         self.location_manager.locationStr = last_location
         
         //Create Location Handlers
         self.fav_Locations = []
-        for i in 0...persistant_cache.fav_locations.count-1 {
+        for i in 0...cache.data!.fav_locations.count-1 {
             fav_Locations.append(WeatherForecastController(
-                persistant_cache.fav_locations[i],
-                persistant_cache.locations[i]
+                cache.data!.fav_locations[i],
+                cache.data!.locations[i]
             ))
         }
         
@@ -105,7 +83,8 @@ class WeatherModel : ObservableObject{
             .sink { data in
                 self.update_toggle = true
             }
-        
+    
+        //setup location listener
         self.location_change_listener = self.location_manager.$locationStr.sink { data in
             if data != self.currLocation.location {
                 self.currLocation.location = data
@@ -113,14 +92,10 @@ class WeatherModel : ObservableObject{
             }
         }
         self.location_manager.startListener()
-        
-        //update timer, we delay it by some ms to not save at every data change
-        self.lazy_data_save = Timer.scheduledTimer(withTimeInterval: 0.125,
-                                                   repeats: true, block: self.save_callback)
-        
+    
         //setup search callback
         self.searchRequester.callback = searchQueryCallback
-        
+        self.cache.model = self        
     }
     
     func refresh() {
@@ -153,16 +128,7 @@ class WeatherModel : ObservableObject{
         self.update_toggle = true
         
         //mark for lazy update
-        lazy_update_persistant_data = true
-    }
-    
-    func saveCache() {
-        
-        do {
-            try modelContext.save()
-        } catch {
-            debugPrint("Failed to save cache")
-        }
+        cache.lazy_update_persistant_data = true
     }
     
     
@@ -192,37 +158,6 @@ class WeatherModel : ObservableObject{
         
         //Notify of new data
         data_change_callback()
-    }
-    
-    
-    //gets called by a timer for lazy saving
-    func save_callback(_ time : Timer) {
-        
-        if self.lazy_update_persistant_data {
-            self.lazy_update_persistant_data = false
-            
-            //Create data backup
-            let newData = PersistentCacheData(
-                fav_locations: [],
-                locations: [],
-                last_location: nil
-            )
-            newData.last_location = self.currLocation.forecast
-            for f in self.fav_Locations {
-                newData.fav_locations.append(f.location)
-                newData.locations.append(f.forecast)
-            }
-            
-            //remove old & add new & invoce save data
-            do {
-                try self.modelContext.delete(model: PersistentCacheData.self)
-                self.modelContext.insert(newData)
-                try self.modelContext.save()
-            } catch {
-                debugPrint("Failed to save persistent cache: \(error)")
-            }
-        }
-        
     }
     
     
