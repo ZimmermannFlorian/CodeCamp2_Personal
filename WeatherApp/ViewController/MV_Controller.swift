@@ -14,7 +14,6 @@ class MV_Controller : ObservableObject{
     @Published var weatherViewData : WeatherViewContainer
 
     private var update_timer : Timer!
-    private var update_gui_timer : Timer!
     private var model_listener : Cancellable!
     
     init(model : WeatherModel) {
@@ -29,11 +28,6 @@ class MV_Controller : ObservableObject{
             self.model.refresh()
         })
         self.update_timer.tolerance = 0.5
-        
-        self.update_gui_timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true, block: { _ in
-            self.refresh_output_delayed()
-        })
-        update_gui_timer.tolerance = 0.5
         
         self.model_listener = model.$update_toggle.sink(receiveValue:{ _ in
             self.refresh_output_delayed()
@@ -188,7 +182,7 @@ class MV_Controller : ObservableObject{
         let date = Date(timeIntervalSince1970: TimeInterval(unixTime))
         let currDate = Date.now
         
-        //Check that the data is alligning with today is fitting / show as past date
+        //Check that the data is alligning with today / show as past date if past
         if Calendar.current.isDate(date, inSameDayAs: currDate) {
             return "Today"
         } else if unixTime < Int(currDate.timeIntervalSince1970) {

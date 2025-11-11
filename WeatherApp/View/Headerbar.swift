@@ -48,9 +48,11 @@ struct Headerbar : View {
     
     func toggleTemperature(){
         mvc.settings.useFahrenheit = !mvc.settings.useFahrenheit
+        mvc.refresh_output_delayed()
     }
     
     func toggleSpeed() {
         mvc.settings.useMiles = !mvc.settings.useMiles
+        mvc.refresh_output_delayed()
     }
 }
